@@ -1,11 +1,13 @@
 import {createConnection, DataSource, In} from "typeorm";
 import {mysqlConnectionConfig} from './ormconfig';
 import express from "express"
+import cors from "cors"
 import { Request, Response } from "express"
 import {Job, User, Skill} from './entity';
 
 const app: express.Application = express();
 app.use(express.json());
+app.use(cors());
 let connection: DataSource;
 createConnection(mysqlConnectionConfig).then(
 	(conn: DataSource) => {
@@ -20,6 +22,7 @@ createConnection(mysqlConnectionConfig).then(
 
 
 app.get("/jobs/all", function (req: Request, res: Response) {
+    console.log("all job request");
     let jobRepo = connection.manager.getRepository(Job);
 	jobRepo.find({relations: {required_skills: true}}).then(
 		(data: Job[]) => {
@@ -32,8 +35,9 @@ app.get("/jobs/all", function (req: Request, res: Response) {
 })
 
 app.get("/users/:id", function (req: Request, res: Response) {
+    console.log("user request");
     let userRepo = connection.manager.getRepository(User);
-	userRepo.find({relations: {user_skills: true}}).then(
+	userRepo.find({relations: {user_skills: true, applied_jobs: true}}).then(
 		(data: User[]) => {
 			res.json(data);
 		},
@@ -44,6 +48,7 @@ app.get("/users/:id", function (req: Request, res: Response) {
 })
 
 app.post("/apply", function (req: Request, res: Response) {
+    console.log("job apply request");
 	let reqData = req.body;
 	console.log(reqData);
 	let userId: number = reqData.user_id;
